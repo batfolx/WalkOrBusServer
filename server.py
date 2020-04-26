@@ -33,7 +33,9 @@ def start_server():
         while True:
             conn, addr = sock.accept()
             print(f'connection: {conn}, addr: {addr}')
-            t = Thread(target=handle_connection, args=(conn, addr,), daemon=True)  # TODO make this multithreaded
+            # we start a daemon thread which means the process will
+            # not wait for threads to finish before ending
+            t = Thread(target=handle_connection, args=(conn, addr,), daemon=True)
             t.start()
     except KeyboardInterrupt:
         pass
@@ -145,6 +147,23 @@ def handle_nomatter_db(c):
     database.add_boris_accuracy(1, now)
     c.send(bytes("Successfully added to DB!", encoding="utf-8"))
 
+def handle_classtime(c, components):
+    target = components[0]
+    accuracy = components[1]
+    src = components[2]
+    ending = components[3]
+    now = str(datetime.now())
+    database.add_boris_accuracy(1, now)
+    stats = atd.get_boris_accuracy_stats()
+    date = atd.datetime.datetime.now().weekday()
+    time = atd.current_time_to_training_data()
+
+    database.add_boris_accuracy(accuracy, now)
+    database.add_data_to_db(date, 0, time, target, src, ending,
+                            timestamp=now, accuracy=f"{stats['PercentCorrect'] * 100:.2f}")
+    print("successfully added to database from classtime")
+    c.send(bytes("Response successful!", encoding='utf-8'))
+
 
 def handle_connection(c, address):
     """
@@ -188,6 +207,11 @@ def handle_connection(c, address):
         elif "nomatteradd_db" in data:
             print('dont matter')
             handle_nomatter_db(c)
+    elif "classtime" in data:
+
+        components = data.split(':')[1].split(',')
+
+        handle_classtime(c, components)
 
     c.close()
 

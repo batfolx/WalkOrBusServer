@@ -1,5 +1,6 @@
 import socket
 
+
 def start_server():
     """
     Starts the server and listens for connections from the app
