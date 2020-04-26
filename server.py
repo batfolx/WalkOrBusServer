@@ -4,6 +4,7 @@ from threading import Thread
 import database
 import training_data_handler as atd
 from classifer import classifier
+from ip import get_host_ip
 
 
 def start_server():
@@ -13,9 +14,10 @@ def start_server():
     """
     # create socket object
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = "192.168.1.6"
-    port = 10000
 
+    host = get_host_ip() if get_host_ip() != "" else "192.168.1.6"
+    port = 10000
+    print(f"Binding to: {host} on port {port}")
     # bind socket to port
     sock.bind((host, port))
 
@@ -27,10 +29,11 @@ def start_server():
     sock.settimeout(10000)
     first_time_setup()
     try:
+        print("Server started, listening for connections")
         while True:
             conn, addr = sock.accept()
             print(f'connection: {conn}, addr: {addr}')
-            t = Thread(target=handle_connection, args=(conn, addr,), daemon=True) #TODO make this multithreaded
+            t = Thread(target=handle_connection, args=(conn, addr,), daemon=True)  # TODO make this multithreaded
             t.start()
     except KeyboardInterrupt:
         pass

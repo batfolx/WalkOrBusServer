@@ -7,7 +7,10 @@ def start_server():
     """
     # create socket object
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = "192.168.1.6"
+    hostname = socket.gethostname()
+    host = socket.gethostbyname(hostname)
+    print(host)
+    # host = "192.168.1.6"
     port = 10000
 
     # bind socket to port
