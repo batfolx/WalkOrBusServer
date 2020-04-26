@@ -1,6 +1,6 @@
 import socket
 from datetime import datetime
-
+from threading import Thread
 import database
 import training_data_handler as atd
 from classifer import classifier
@@ -21,18 +21,36 @@ def start_server():
 
     # listen for up to 10 connections
     sock.listen(10)
+
+    # set socket timeout
+
+    sock.settimeout(10000)
+    first_time_setup()
     try:
         while True:
             conn, addr = sock.accept()
             print(f'connection: {conn}, addr: {addr}')
-            handle_connection(conn, addr)
-            #Thread(target=handle_connection, args=(conn, addr,)).start() #TODO make this multithreaded
+            t = Thread(target=handle_connection, args=(conn, addr,), daemon=True) #TODO make this multithreaded
+            t.start()
     except KeyboardInterrupt:
         pass
 
     # close and detach socket for cleanup
     sock.close()
     sock.detach()
+
+
+def first_time_setup():
+    """
+    if there is nothing in DB, we add this dummy data so entire project doesn't crash
+    as well as create the database & tables necessary for the server to run
+    :return: None
+    """
+
+    database.create_tables_and_db()
+    training_data, targets = atd.get_training_data_from_db()
+    if len(training_data) == 0:
+        database.add_data_to_db(0, 0, 0, 0, 0, 0)
 
 
 def send_boris_answer(c, components):
@@ -59,10 +77,10 @@ def send_boris_answer(c, components):
     print(f'Boris answer: {answer}')
     data_points = len(training_data)
     boris_answer = answer[0]
-    percent = stats['PercentCorrect']
+    percent = stats['PercentCorrect'] * 100
 
     # send a nicely formatted string to decode to use in the app
-    c.send(bytes(f"{boris_answer},{percent},{data_points}", 'utf-8'))
+    c.send(bytes(f"{boris_answer},{percent:.2f},{data_points}", 'utf-8'))
 
 
 def handle_yes_db(c, components):
@@ -79,6 +97,7 @@ def handle_yes_db(c, components):
     destination = components[4]
     target = components[5]
     now = str(datetime.now())
+    # 0 means he got it correct, 1 means he got it wrong
     database.add_boris_accuracy(0, now)
     stats = atd.get_boris_accuracy_stats()
 
@@ -120,7 +139,7 @@ def handle_nomatter_db(c):
     :return: None
     """
     now = str(datetime.now())
-    database.add_boris_accuracy(2, now)
+    database.add_boris_accuracy(1, now)
     c.send(bytes("Successfully added to DB!", encoding="utf-8"))
 
 

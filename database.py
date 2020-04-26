@@ -196,30 +196,45 @@ def get_boris_accuracy():
     return result
 
 
+def create_tables_and_db():
+    """
+    First time setup function to
+    create the proper database and tables
+    :return: None
+    """
+    conn = _connect()
+    try:
+        with conn.cursor() as cur:
+
+            sql = "CREATE DATABASE IF NOT EXISTS website_data"
+            cur.execute(sql)
+            conn.commit()
+
+            sql = """CREATE TABLE IF NOT EXISTS website_data.user_data (
+                day int,
+                food_court_avg int,
+                time float,
+                target int,
+                location int,
+                location_dest int,
+                timestamp varchar(35),
+                accuracy int
+            );"""
+
+            cur.execute(sql)
+            conn.commit()
+
+            sql = """CREATE TABLE IF NOT EXISTS website_data.boris_accuracy(
+                    decision int,
+                    target int,
+                    timestamp varchar(35)
+                );"""
+
+            cur.execute(sql)
+            conn.commit()
+    finally:
+        conn.close()
+
 
 #delete_entries_from_table('website_data.user_data')
 #delete_entries_from_table('website_data.boris_accuracy')
-
-# there are used as first time setup
-"""
-CREATE TABLE user_data (
-    day int,
-    food_court_avg int,
-    time float,
-    location int,
-    location_dest int,
-    timestamp varchar(35),
-    accuracy int
-);
-
-CREATE TABLE boris_accuracy(
-
-	decision int,
-	target int,
-	timestamp varchar(35)
-
-);
-
-"""
-
-#add_data_to_db(2, 0, 8.3, 1, 0, 1)
