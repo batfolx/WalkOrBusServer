@@ -147,6 +147,7 @@ def handle_nomatter_db(c):
     database.add_boris_accuracy(1, now)
     c.send(bytes("Successfully added to DB!", encoding="utf-8"))
 
+
 def handle_classtime(c, components):
     target = components[0]
     accuracy = components[1]
