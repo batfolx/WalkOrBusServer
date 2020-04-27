@@ -5,7 +5,9 @@ import database
 import training_data_handler as atd
 from classifer import classifier
 from ip import get_host_ip
-
+import graphing_utils
+import boto3
+import boto3.s3
 
 def start_server():
     """
@@ -14,8 +16,7 @@ def start_server():
     """
     # create socket object
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    host = get_host_ip() if get_host_ip() != "" else "192.168.1.6"
+    host = get_host_ip() if get_host_ip() != "" else "192.168.1.7"
     port = 10000
     print(f"Binding to: {host} on port {port}")
     # bind socket to port
@@ -26,7 +27,7 @@ def start_server():
 
     # set socket timeout
 
-    sock.settimeout(10000)
+    #sock.settimeout(10000)
     first_time_setup()
     try:
         print("Server started, listening for connections")
@@ -135,6 +136,12 @@ def handle_no_db(c, components):
     c.send(bytes("Successfully added to DB!", encoding="utf-8"))
 
 
+def upload_to_s3(filename, bucket_name='givemethebucket'):
+    client = boto3.client("s3")
+    # upload file & make it public
+    client.upload_file(filename, bucket_name, filename, ExtraArgs={'ACL':'public-read'})
+
+
 def handle_nomatter_db(c):
     """
     Handles if Boris' decision didn't matter (walk/bus got there on same time)
@@ -144,6 +151,30 @@ def handle_nomatter_db(c):
     now = str(datetime.now())
     database.add_boris_accuracy(1, now)
     c.send(bytes("Successfully added to DB!", encoding="utf-8"))
+
+def handle_upload_graph(c):
+    def parse_weekday(day: int) -> str:
+        if day == 0:
+            return 'monday'
+        elif day == 1:
+            return 'tuesday'
+        elif day == 2:
+            return 'wednesday'
+        elif day == 3:
+            return 'thursday'
+        elif day == 4:
+            return 'friday'
+        elif day == 5:
+            return 'saturday'
+        elif day == 6:
+            return 'sunday'
+
+    weekday = parse_weekday(int(datetime.now().weekday()))
+    graphing_utils.get_day_graph(weekday)
+    filename = f'images/boris_day_{weekday}.png'
+    upload_to_s3(filename)
+    url = f'https://givemethebucket.s3.us-east-2.amazonaws.com/images/{filename}'
+    c.send(bytes(url, encoding='utf-8'))
 
 
 def handle_connection(c, address):
@@ -188,6 +219,10 @@ def handle_connection(c, address):
         elif "nomatteradd_db" in data:
             print('dont matter')
             handle_nomatter_db(c)
+
+    elif "uploadgraph" in data:
+        print("uploading graph")
+        handle_upload_graph(c)
 
     c.close()
 

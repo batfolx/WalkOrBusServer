@@ -1,4 +1,15 @@
 import socket
+import boto3
+
+
+
+
+def upload_to_s3(filename, bucket_name='givemethebucket'):
+    client = boto3.client("s3")
+    msg = client.upload_file(filename, bucket_name, filename)
+
+
+
 
 def start_server():
     """
@@ -8,7 +19,7 @@ def start_server():
     # create socket object
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     hostname = socket.gethostname()
-    host = socket.gethostbyname(hostname)
+    host = '192.168.1.7'
     print(host)
     # host = "192.168.1.6"
     port = 10000
@@ -20,10 +31,12 @@ def start_server():
     sock.listen(10)
     sock.settimeout(100000)
     try:
+        print("Server listening")
         while True:
             conn, addr = sock.accept()
             print(f'connection: {conn}, addr: {addr}')
-            with open('milk_beverages.jpg', 'rb') as f:
+            filename = 'chicken.jpg'
+            with open(filename, 'rb') as f:
                 data = f.read()
                 print(f"this is data: {data}, length of data: {len(data)}")
 
@@ -40,3 +53,4 @@ def start_server():
     sock.detach()
 
 start_server()
+#upload_to_s3()
