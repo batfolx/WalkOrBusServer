@@ -141,7 +141,7 @@ def handle_no_db(c, components):
 def upload_to_s3(filename, bucket_name='givemethebucket'):
     client = boto3.client("s3")
     # upload file & make it public
-    client.upload_file(filename, bucket_name, filename, ExtraArgs={'ACL':'public-read'})
+    client.upload_file(filename, bucket_name, filename, ExtraArgs={'ACL': 'public-read'})
 
 
 def handle_nomatter_db(c):
@@ -153,6 +153,7 @@ def handle_nomatter_db(c):
     now = str(datetime.now())
     database.add_boris_accuracy(1, now)
     c.send(bytes("Successfully added to DB!", encoding="utf-8"))
+
 
 def handle_upload_graph(c):
     def parse_weekday(day: int) -> str:
@@ -175,7 +176,7 @@ def handle_upload_graph(c):
     graphing_utils.get_day_graph(weekday)
     filename = f'images/boris_day_{weekday}.png'
     upload_to_s3(filename)
-    url = f'https://givemethebucket.s3.us-east-2.amazonaws.com/images/{filename}'
+    url = f'https://givemethebucket.s3.us-east-2.amazonaws.com/{filename}'
     c.send(bytes(url, encoding='utf-8'))
 
 
@@ -254,3 +255,5 @@ def handle_connection(c, address):
 
 # start the server
 start_server()
+
+#upload_to_s3('images/boris_day_sunday.png')

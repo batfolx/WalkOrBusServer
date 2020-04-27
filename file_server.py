@@ -53,5 +53,4 @@ def start_server():
     sock.close()
     sock.detach()
 
-start_server()
-#upload_to_s3()
+#start_server()
