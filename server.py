@@ -97,7 +97,8 @@ def handle_yes_db(c, components):
     :return: None
     """
     print(f"Incoming components in handle_yes_db {components}")
-    date = components[0]
+    #date = components[0]
+    date = atd.datetime.datetime.now().weekday()
     time = components[2]
     src = components[3]
     destination = components[4]
@@ -120,12 +121,13 @@ def handle_no_db(c, components):
     :param components: The components from the data sent from app
     :return: None
     """
-    date = components[0]
+    #date = components[0]
     time = components[2]
     src = components[3]
     destination = components[4]
     target = components[5]
     now = str(datetime.now())
+    date = atd.datetime.datetime.now().weekday()
     database.add_boris_accuracy(1, now)
     stats = atd.get_boris_accuracy_stats()
     if target.strip() == '0':
@@ -176,8 +178,17 @@ def handle_upload_graph(c):
     graphing_utils.get_day_graph(weekday)
     filename = f'images/boris_day_{weekday}.png'
     upload_to_s3(filename)
+
     url = f'https://givemethebucket.s3.us-east-2.amazonaws.com/{filename}'
     c.send(bytes(url, encoding='utf-8'))
+
+    graphing_utils.boris_percentage_overall_graph()
+    filename = "images/boris_overall_graph.png"
+    upload_to_s3(filename)
+
+    url = "https://givemethebucket.s3.us-east-2.amazonaws.com/images/boris_overall_graph.png"
+    c.send(bytes(url, encoding='utf-8'))
+
 
 
 def handle_classtime(c, components):
@@ -197,6 +208,9 @@ def handle_classtime(c, components):
     print("successfully added to database from classtime")
     c.send(bytes("Response successful!", encoding='utf-8'))
 
+
+def handle_online(c):
+    c.send(bytes('Boris is online', encoding='utf-8'))
 
 def handle_connection(c, address):
     """
@@ -250,10 +264,12 @@ def handle_connection(c, address):
         print("uploading graph")
         handle_upload_graph(c)
 
+    elif "online" in data:
+        print("Boris is online")
+        handle_online(c)
+
     c.close()
 
 
 # start the server
 start_server()
-
-#upload_to_s3('images/boris_day_sunday.png')

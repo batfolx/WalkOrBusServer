@@ -19,7 +19,7 @@ def _get_graph_data(num_day: int, db_results: list, boris_stats: dict, day_name:
     plt.yticks(numpy.arange(0, 110, 10))
     plt.grid()
     plt.savefig(f'images/boris_day_{day_name}.png')
-    plt.show()
+    #plt.show()
 
 
 def boris_percentage_overall_graph():
@@ -38,9 +38,9 @@ def boris_percentage_overall_graph():
     plt.title("Boris percent correct vs time")
     plt.yticks(numpy.arange(0, 110, 10))
     plt.grid()
-    plt.savefig("images/boris_graph.png")
+    plt.savefig("images/boris_overall_graph.png")
 
-    plt.show()
+    #plt.show()
     return fig
 
 
@@ -64,6 +64,6 @@ def get_day_graph(day):
 
 
 
-#get_day_graph("monday")
+#get_day_graph("wednesday")
 #boris_percentage_overall_graph()
 

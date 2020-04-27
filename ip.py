@@ -6,9 +6,9 @@ def get_host_ip() -> str:
     output = subprocess.check_output(('grep', 'inet'), stdin=process.stdout)
     process.wait()
     output = str(output).strip()
-    print(output)
+    #print(output)
     comp = output.split(' ')
-    print(comp)
+    #print(comp)
     for i in range(len(comp)):
         if comp[i] == 'inet':
             return comp[i + 1]
